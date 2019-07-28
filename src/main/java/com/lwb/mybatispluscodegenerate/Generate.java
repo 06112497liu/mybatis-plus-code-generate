@@ -7,8 +7,10 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.generator.AutoGenerator;
 import com.baomidou.mybatisplus.generator.InjectionConfig;
 import com.baomidou.mybatisplus.generator.config.*;
+import com.baomidou.mybatisplus.generator.config.converts.MySqlTypeConvert;
 import com.baomidou.mybatisplus.generator.config.po.TableField;
 import com.baomidou.mybatisplus.generator.config.po.TableInfo;
+import com.baomidou.mybatisplus.generator.config.rules.DateType;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 import com.baomidou.mybatisplus.generator.engine.FreemarkerTemplateEngine;
 
@@ -49,15 +51,30 @@ public class Generate {
 
         // 全局配置
         GlobalConfig gc = new GlobalConfig();
-        String projectPath = System.getProperty("user.dir").replace("\\", "/");
+        String projectPath = System.getProperty("user.dir");
         gc.setOutputDir(projectPath + "/src/main/java");
         gc.setAuthor("lwb");
         gc.setOpen(false);
-        // gc.setSwagger2(true); 实体属性 Swagger2 注解
+        // 覆盖已有的文件
+        gc.setFileOverride(true);
+        /**
+         * 设置时间类型采用什么，新版的默认采用jdk8的时间
+         * 对应规则{@link MySqlTypeConvert}
+         * issue：
+         * 1. 当mysql字段类型是year时，按理说实体类型应该是{@link java.time.Year}
+         *    结果是{@link java.time.LocalDateTime}，这是因为判错误。
+         * 2. 当mysql字段类型是json和enum时，实体类型统一都是String
+         */
+        gc.setDateType(DateType.TIME_PACK);
         mpg.setGlobalConfig(gc);
 
         // 数据源配置
         DataSourceConfig dsc = new DataSourceConfig();
+        /**
+         * 设置数据库字段和实体字段的转换规则，当然也可以自定义
+         * 遇到的问题见上述描述（全局设置时间类型的描述）
+         */
+        dsc.setTypeConvert(new MySqlTypeConvert());
         dsc.setUrl("jdbc:mysql://localhost:3306/study?serverTimezone=UTC");
         dsc.setDriverName("com.mysql.cj.jdbc.Driver");
         dsc.setUsername("root");
@@ -67,7 +84,7 @@ public class Generate {
         // 包配置
         PackageConfig pc = new PackageConfig();
         pc.setModuleName(scanner("模块名"));
-        pc.setParent("com.lwb");
+        pc.setParent("com.lwb.mybatispluscodegenerate");
         mpg.setPackageInfo(pc);
 
         // 自定义配置
@@ -111,7 +128,8 @@ public class Generate {
         TemplateConfig templateConfig = new TemplateConfig();
 
         // 配置自定义输出模板
-        //指定自定义模板路径，注意不要带上.ftl/.vm, 会根据使用的模板引擎自动识别
+        // 指定自定义模板路径，注意不要带上.ftl/.vm, 会根据使用的模板引擎自动识别
+        // 注意，自定义的模板一定要放在resources/templates，否则会找不到
         templateConfig.setEntity("/templates/entity1.java");
         templateConfig.setService("/templates/service1.java");
         templateConfig.setServiceImpl("/templates/serviceImpl1.java");
@@ -121,19 +139,7 @@ public class Generate {
 
         // 策略配置
         StrategyConfig strategy = new StrategyConfig();
-        // 自定义表名和属性名转换
-        strategy.setNameConvert(new INameConvert() {
-            @Override
-            public String entityNameConvert(TableInfo tableInfo) {
-                String[] b = {"t_", "b_"};
-                return NamingStrategy.capitalFirst(NamingStrategy.removePrefixAndCamel(tableInfo.getName(), b));
-            }
-
-            @Override
-            public String propertyNameConvert(TableField field) {
-                return NamingStrategy.underlineToCamel(field.getName());
-            }
-        });
+        strategy.setColumnNaming(NamingStrategy.underline_to_camel);
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);
         // 是否启用lombok
         strategy.setEntityLombokModel(true);
@@ -144,7 +150,9 @@ public class Generate {
 //        strategy.setSuperEntityColumns("id");
         strategy.setInclude(scanner("表名，多个英文逗号分割").split(","));
         strategy.setControllerMappingHyphenStyle(true);
-        strategy.setTablePrefix(pc.getModuleName() + "_");
+        // 设置表前缀，生成的实体会去掉这些表前缀
+        strategy.setTablePrefix("t_", "b_");
+//        strategy.setTablePrefix(pc.getModuleName() + "_");
         mpg.setStrategy(strategy);
         mpg.setTemplateEngine(new FreemarkerTemplateEngine());
         mpg.execute();

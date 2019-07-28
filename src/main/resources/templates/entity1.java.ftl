@@ -15,7 +15,7 @@ import lombok.experimental.Accessors;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 /**
- * ${table.comment!}
+ * ${table.comment!}实体
  * @author ${author}
  * @date ${.now?string("yyyy/MM/dd")}
  */
