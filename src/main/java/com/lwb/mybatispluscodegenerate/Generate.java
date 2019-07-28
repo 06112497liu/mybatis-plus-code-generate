@@ -138,6 +138,7 @@ public class Generate {
         mpg.setTemplate(templateConfig);
 
         // 策略配置
+        // 配置数据库字段名和实体属性名的映射规则
         StrategyConfig strategy = new StrategyConfig();
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);
