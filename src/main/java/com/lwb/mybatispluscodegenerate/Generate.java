@@ -53,8 +53,10 @@ public class Generate {
         GlobalConfig gc = new GlobalConfig();
         String projectPath = System.getProperty("user.dir");
         gc.setOutputDir(projectPath + "/src/main/java");
-        gc.setAuthor(scanner("作者"));
+        gc.setAuthor("liuweibo");
         gc.setOpen(false);
+        // 去掉接口中的首字母I
+        gc.setServiceName("%sService");
         // 覆盖已有的文件
         gc.setFileOverride(true);
         /**
@@ -75,16 +77,16 @@ public class Generate {
          * 遇到的问题见上述描述（全局设置时间类型的描述）
          */
         dsc.setTypeConvert(new MySqlTypeConvert());
-        dsc.setUrl("jdbc:mysql://localhost:3306/" + scanner("数据库名") + "?serverTimezone=UTC");
+        dsc.setUrl("jdbc:mysql://192.168.46.175:3306/" + "yxp_sync" + "?serverTimezone=UTC");
         dsc.setDriverName("com.mysql.cj.jdbc.Driver");
-        dsc.setUsername(scanner("数据库账号"));
-        dsc.setPassword(scanner("数据库密码"));
+        dsc.setUsername("youxuepai");
+        dsc.setPassword("youxuepai");
         mpg.setDataSource(dsc);
 
         // 包配置
         PackageConfig pc = new PackageConfig();
-        pc.setModuleName(scanner("模块名"));
-        pc.setParent("com.lwb.mybatispluscodegenerate");
+//        pc.setModuleName("entity");
+        pc.setParent("com.youxuepai.edu.sync.manage");
         mpg.setPackageInfo(pc);
 
         // 自定义配置
@@ -140,10 +142,10 @@ public class Generate {
         // 策略配置
         // 配置数据库字段名和实体属性名的映射规则
         StrategyConfig strategy = new StrategyConfig();
-        strategy.setColumnNaming(NamingStrategy.underline_to_camel);
+        strategy.setNaming(NamingStrategy.underline_to_camel);
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);
         // 是否启用lombok
-        strategy.setEntityLombokModel(true);
+        strategy.setEntityLombokModel(false);
         strategy.setRestControllerStyle(true);
         // 公共父类
 //        strategy.setSuperControllerClass("com.lwb.controller");
